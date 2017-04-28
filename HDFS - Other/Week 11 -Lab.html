@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body style="font-family: verdana, sans-serif;font-size: 12px;">
+<p><strong>Install Elasticsearch</strong></p>
+<p>&curren;Install java8 - wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" <a href="http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-x64.tar.gz">http://</a><a href="http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-x64.tar.gz">download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-x64.tar.gz</a></p>
+<p>http://stackoverflow.com/questions/10268583/downloading-java-jdk-on-linux-via-wget-is-shown-license-page-instead</p>
+<p>&curren;tar-xvzf <a href="http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jdk-8u102-linux-x64.tar.gz">jdk-8u102-linux-x64.tar.gz</a></p>
+<p>&curren;export JAVA_HOME=jdk1.8.0_102/</p>
+<p>&curren;export PATH=$PATH:$JAVA_HOME/bin</p>
+<p>&curren;wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.1.tar.gz</p>
+<p>&curren;tar &ndash;xvzf elasticsearch-5.0.1.tar.gz</p>
+<p>&curren;cd elasticsearch-5.0.1</p>
+<p>&curren;bin/elasticsearch -d</p>
+<p><strong></strong></p>
+<p><strong>Check if elasticsearch is running</strong></p>
+<p>curl -XGET "http://127.0.0.1:9200"</p>
+<p></p>
+<p>http://joelabrahamsson.com/elasticsearch-101/</p>
+<p><strong>Insert index "movies" type "movie"</strong></p>
+<pre class="prettyprint"><span class="pln">curl </span><span class="pun">-</span><span class="pln">XPUT </span><span class="str">"http://localhost:9200/movies/movie/2"</span><span class="pln"> </span><span class="pun">-</span><span class="pln">d</span><span class="str">'
+{
+    "title": "Lawrence of Arabia",
+    "director": "David Lean",
+    "year": 1962,
+    "genres": ["Adventure", "Biography", "Drama"]
+}'</span><span class="pln">
+
+curl </span><span class="pun">-</span><span class="pln">XPUT </span><span class="str">"http://localhost:9200/movies/movie/3"</span><span class="pln"> </span><span class="pun">-</span><span class="pln">d</span><span class="str">'
+{
+    "title": "To Kill a Mockingbird",
+    "director": "Robert Mulligan",
+    "year": 1962,
+    "genres": ["Crime", "Drama", "Mystery"]
+}'</span><span class="pln">
+
+curl </span><span class="pun">-</span><span class="pln">XPUT </span><span class="str">"http://localhost:9200/movies/movie/4"</span><span class="pln"> </span><span class="pun">-</span><span class="pln">d</span><span class="str">'
+{
+    "title": "Apocalypse Now",
+    "director": "Francis Ford Coppola",
+    "year": 1979,
+    "genres": ["Drama", "War"]
+}'</span><span class="pln">
+
+curl </span><span class="pun">-</span><span class="pln">XPUT </span><span class="str">"http://localhost:9200/movies/movie/5"</span><span class="pln"> </span><span class="pun">-</span><span class="pln">d</span><span class="str">'
+{
+    "title": "Kill Bill: Vol. 1",
+    "director": "Quentin Tarantino",
+    "year": 2003,
+    "genres": ["Action", "Crime", "Thriller"]
+}'</span><span class="pln">
+
+curl </span><span class="pun">-</span><span class="pln">XPUT </span><span class="str">"http://localhost:9200/movies/movie/6"</span><span class="pln"> </span><span class="pun">-</span><span class="pln">d</span><span class="str">'
+{
+    "title": "The Assassination of Jesse James by the Coward Robert Ford",
+    "director": "Andrew Dominik",
+    "year": 2007,
+    "genres": ["Biography", "Crime", "Drama"]
+}'</span></pre>
+<p><strong>-- add document without id</strong></p>
+<p>curl -XPOST "http://localhost:9200/movies/movie" -d'<br />{<br /> "title": "To Kill a Mockingbird",<br /> "director": "Robert Mulligan",<br /> "year": 1962,<br /> "genres": ["Crime", "Drama", "Mystery"]<br />}'</p>
+<p></p>
+<p><strong>Insert index "movies" type "movie1"</strong></p>
+<pre class="prettyprint"><span class="pln">curl </span><span class="pun">-</span><span class="pln">XPUT </span><span class="str">"http://localhost:9200/movies/movie1/1"</span><span class="pln"> </span><span class="pun">-</span><span class="pln">d</span><span class="str">'
+{
+    "title": "Kill Bill: Vol. 1",
+    "director": "Quentin Tarantino",
+    "year": 2003,
+    "genres": ["Action", "Crime", "Thriller"]
+}'<br /></span></pre>
+<pre class="prettyprint"><span class="pln">curl </span><span class="pun">-</span><span class="pln">XPUT </span><span class="str">"http://localhost:9200/movies/movie1/1"</span><span class="pln"> </span><span class="pun">-</span><span class="pln">d</span><span class="str">'
+{
+    "title": "Kill Bill: Vol. 5",
+    "director": "Quentin Tarantino",
+    "year": 2003,
+    "genres": ["Action", "Crime", "Thriller"]
+}'<br /><br /><br /><strong>Insert index "test" type "test1"<br /><br /></strong></span></pre>
+<pre class="prettyprint"><span class="pln">curl </span><span class="pun">-</span><span class="pln">XPUT </span><span class="str">"http://localhost:9200/test/test1/1"</span><span class="pln"> </span><span class="pun">-</span><span class="pln">d</span><span class="str">'
+{
+    "title": "Kill Bill: Vol. 1",
+    "director": "Quentin Tarantino",
+    "year": 2003,
+    "genres": ["Action", "Crime", "Thriller"]
+}'<br /></span></pre>
+<pre class="prettyprint"><span class="pln">curl </span><span class="pun">-</span><span class="pln">XPUT </span><span class="str">"http://localhost:9200/test/test1/1"</span><span class="pln"> </span><span class="pun">-</span><span class="pln">d</span><span class="str">'
+{
+    "title": "Kill Bill: Vol. 5",
+    "director": "Quentin Tarantino",
+    "year": 2003,
+    "genres": ["Action", "Crime", "Thriller"]
+}'</span></pre>
+<pre class="prettyprint"><span class="str"><br /><br /><strong>Search across all indexes</strong><br /><br />curl -XPOST "http://localhost:9200/_search" -d'<br />{<br /> "query": {<br /> "query_string": {<br /> "query": "kill"<br /> }<br /> }<br />}'<br /><br /><strong>Search within index across all types<br /><br />curl -XPOST "http://localhost:9200/movies/_search" -d'<br />{<br /> "query": {<br /> "query_string": {<br /> "query": "kill"<br /> }<br /> }<br />}'</strong><br /><br /><br /><strong>Search within index within type</strong></span></pre>
+<pre class="prettyprint"><span class="str">&nbsp;curl -XPOST "http://localhost:9200/movies/movie/_search" -d'<br />{<br /> "query": {<br /> "query_string": {<br /> "query": "kill"<br /> }<br /> }<br />}'<br /><br /><br /><br /><strong>Filtered Query<br /></strong></span></pre>
+<p>A filtered query is a query that has two properties, query and filter. When executed it filters the result of the query using the filter. To finalize the query we'll need to add a filter requiring the year field to have value 1962.</p>
+<p>ElasticSearch's query DSL has a wide range of filters to choose from. For this simple case where a certain field should match a specific value a <a href="http://www.elasticsearch.org/guide/reference/query-dsl/term-filter/">term filter </a>will work well.</p>
+<pre class="prettyprint"><span class="str"><strong>&nbsp;</strong></span></pre>
+<pre class="prettyprint"><span class="pln">curl </span><span class="pun">-</span><span class="pln">XPOST </span><span class="str">"http://localhost:9200/_search"</span><span class="pln"> </span><span class="pun">-</span><span class="pln">d</span><span class="str">'
+{
+    "query": {
+        "filtered": {
+            "query": {
+                "query_string": {
+                    "query": "drama"
+                }
+            },
+            "filter": {
+                "term": { "year": 1962 }
+            }
+        }
+    }
+}'<br /><br /><strong>We can also apply the filter alone</strong><br /><br /></span></pre>
+<pre class="prettyprint"><span class="pln">curl </span><span class="pun">-</span><span class="pln">XPOST </span><span class="str">"http://localhost:9200/_search"</span><span class="pln"> </span><span class="pun">-</span><span class="pln">d</span><span class="str">'
+{
+    "query": {
+        "filtered": {
+            "query": {
+                "match_all": {
+                }
+            },
+            "filter": {
+                "term": { "year": 1962 }
+            }
+        }
+    }
+}'</span></pre>
+<pre class="prettyprint"><span class="str"><br /><br /></span>Query vs. Filter: <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/_queries_and_filters.html">https://www.elastic.co/guide/en/elasticsearch/guide/current/_queries_and_filters.html</a><br />http://stackoverflow.com/questions/29268763/different-between-query-and-filters-in-elasticsearch</pre>
+<pre class="prettyprint"><span class="str"><strong>&nbsp;</strong></span></pre>
+<p></p>
+</body>
+</html>
