@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body style="font-family: verdana, sans-serif;font-size: 12px;">
+<p><strong>#Load datasets&nbsp;into HDFS</strong></p>
+<p>1. Datasets &amp; Scripts -&gt; Twitter -&gt; full_text.txt</p>
+<p>2. Datasets &amp; Scripts -&gt;&nbsp;Shakespeare -&gt; shakespeare_100.txt</p>
+<p>3. Create HDFS directory called "genre"</p>
+<p>4. Copy 3 files from&nbsp;<strong>hive2_dataset.zip </strong>into the "genre" folder</p>
+<p></p>
+<p># <strong>Setting SPARK environment variable</strong></p>
+<p><code class=" prettyprinted"><span class="com"></span></code>export SPARK_HOME=/usr/hdp/2.4.0.0-169/spark/</p>
+<p>export PATH=$SPARK_HOME/bin:$PATH</p>
+<p><strong># Get into spark shell by typing "pyspark"</strong></p>
+<p><strong>#PySpark Shell Commands</strong></p>
+<p># Turn a Python collection into an RDD</p>
+<p>sc.parallelize([1, 2, 3])</p>
+<p># Load text file from local FS</p>
+<p>&nbsp;&nbsp; sc.textFile("file:///root/lab/full_text.txt")</p>
+<p># Load text file from HDFS</p>
+<p>sc.textFile("/user/root/shakespeare_100.txt")</p>
+<p>sc.textFile("hdfs://sandbox.hortonworks.com:8020/user/root/shakespeare_100.txt")</p>
+<p>#Load from directory</p>
+<p>sc.textFile("/user/root/genre/*")</p>
+<p></p>
+<p><strong>#Basic Transformation</strong></p>
+<p>nums = sc.parallelize([1, 2, 3])<br />text = sc.textFile("/user/root/shakespeare_100.txt")</p>
+<p># Map each element to zero or more others and flatten into single large list</p>
+<p>nums.flatMap(lambda x: range(x))</p>
+<p>words = text.flatMap(lambda line: line.split())</p>
+<p># Pass each element through a function</p>
+<p>squares = nums.map(lambda x: x*x)</p>
+<p>wordWithCount = words.map(lambda word: (word, 1))</p>
+<p># Keep elements passing a predicate</p>
+<p>&nbsp;&nbsp; even = squares.filter(lambda x: x % 2 == 0)</p>
+<p></p>
+<p><strong>#Basic Action</strong></p>
+<p>nums = sc.parallelize([1, 2, 3])</p>
+<p># Retrieve RDD contents as a local collection</p>
+<p>nums.collect()</p>
+<p># Return first K elements</p>
+<p>nums.take(2)&nbsp;</p>
+<p># Count number of elements</p>
+<p>&gt;nums.count()</p>
+<p># Merge elements with an associative function</p>
+<p>nums.reduce(lambda x, y: x + y)</p>
+<p># Write elements to a text file in HDFS</p>
+<p>nums.saveAsTextFile("file.txt")</p>
+<p># To save to local file system</p>
+<p>X = nums.collect()</p>
+<p>#Then save X using standard write operations</p>
+<p></p>
+<p><strong>#Using Spark Submit</strong></p>
+<p></p>
+<p>#Submit a job to the spark cluster without using the shell</p>
+<p><strong>spark-submit --master yarn-client --executor-memory 512m --num-executors 3 --executor-cores 1 --driver-memory 512m sparkTemplate.py</strong></p>
+<p><span><br /><br /><strong>#RDD Operations<br /></strong></span></p>
+<p>mydata = sc.textFile("shakespeare_100.txt")</p>
+<p>mydata_uc = mydata.map(lambda line: line.upper() )</p>
+<p>mydata_filt = mydata_uc.filter(lambda line: line.startswith('I') )</p>
+<p>mydata_filt.count()</p>
+<p></p>
+<p><strong># Pair RDDs for Map Reduce Operations</strong></p>
+<p>text = sc.textFile("full_text.txt") \</p>
+<p>.map(lambda line: line.split("\t")) \</p>
+<p>.map(lambda fields: (fields[0], fields[1]))</p>
+<p></p>
+<p>#Pair RDDS adding a key</p>
+<p><span>text = sc.textFile("full_text.txt") \</span></p>
+<p>.<b>keyBy</b>(lambda line: line.split("\t")[0])</p>
+<p></p>
+<p>#Pairs with Complex Values</p>
+<p>text = sc.textFile(("full_text.txt")) \</p>
+<p>&nbsp; .<b>map</b>(lambda line: line.split("\t")) \</p>
+<p>&nbsp; .<b>map</b>(lambda fields: (fields[0], (fields[1], fields[2])))</p>
+<p></p>
+<p><strong>WordCount example</strong></p>
+<p><strong>#Spark Shell</strong></p>
+<p>counts = sc.textFile(<span>"shakespeare_100.txt"</span>) \</p>
+<p>&nbsp; .flatMap(lambda line: line.split() ) \</p>
+<p>&nbsp; .map(lambda word: (word,1) ) \</p>
+<p>&nbsp; .reduceByKey(lambda v1,v2: v1+v2)</p>
+<p><strong>#Spark Submit</strong></p>
+<p><span>spark-submit --master yarn-client --executor-memory 512m --num-executors 3 --executor-cores 1 --driver-memory 512m wordCount.py</span></p>
+<p><span></span></p>
+<p><strong># Dept&nbsp;Average Salary</strong></p>
+<p><strong>Input:</strong> Department[SPACE]Salary</p>
+<ul>
+<li>Input file is "dept_salary" that you downloaded from D2L and uploaded to VirtualBox.</li>
+</ul>
+<p><strong>Output:</strong> Department[SPACE]Average Salary</p>
+<pre><span>spark-submit --master yarn-client --executor-memory 512m --num-executors 3 --executor-cores 1 --driver-memory 512m deptAverage.py<br /><br /><strong>#Spark Submit (Run Locally for Testing)<br /><br /></strong></span></pre>
+<pre><span>spark-submit --master <strong>local[2]</strong> --executor-memory 512m --num-executors 3 --executor-cores 1 --driver-memory 512m deptAverage.py<br /></span></pre>
+</body>
+</html>
