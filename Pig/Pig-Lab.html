@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body style="font-family: verdana, sans-serif;font-size: 12px;">
+<p>------------------------------------------------------------------------------------------------------------------<br />------------------------------------------------------------------------------------------------------------------<br />-- CIND 719 5J0 - Programming Pig - Lab Exercises</p>
+<p>-- Pig Utilities<br />-- Pig Basics<br />-- Conditional function<br />-- Pig Relational Operations<br />-- Filter, group, cogroup<br />-- Join, nested foreach, Cross<br />-- Pig Complex Data Types<br />-- flatten</p>
+<p>-- Pig Functions<br />-- Datetime function<br />-- String function<br />-- Working with Pig UDFs<br />-- Piggybank</p>
+<p>------------------------------------------------------------------------------------------------------------------<br />------------------------------------------------------------------------------------------------------------------<br />Dataset<br />--------------------------------------<br />-- 1. In this lab session, we will start working with Pig Shell - Grunt<br />-- 2. File full_text.txt is available under D2L -&gt; Datasets and Scripts -&gt; Twitter; Use Filiezilla to copy file onto the virtual machine<br />-- 3. File dayofweek.txt is available under D2L -&gt; Datasets and Scripts -&gt; Twitter; Use Filiezilla to copy file onto the virtual machine<br />-- 5. Lines that begin with "--" are comments<br />-- 6. Lines that begin with "&gt;grunt" are Pig commands.<br />-- 7. Lines that begin with "[root@sandbox ~]" are hadoop or linux commands<br />------------------------------------------------------------------------------------------------------------------<br />------------------------------------------------------------------------------------------------------------------</p>
+<p><br />-------------------------------<br />-- Data Preparation<br />-------------------------------</p>
+<p><br />-- Run the following shell commands to make sure that you have full_text.txt under /user/root/pig folder in HDFS</p>
+<p>-- 1. create a working directory in linux and hdfs for this exercise<br />[root@sandbox ~]# hadoop fs -mkdir /user/root/pig</p>
+<p>--Copy full_text.txt from local (virtual box) to a HDFS location /user/root/twitter. You need the /user/root/twitter directory first.<br />[root@sandbox ~]# hadoop fs -put full_text /user/root/pig</p>
+<p><br />--Copy dayofweek.txt from local (virtual box) to a HDFS location /user/root/pig<br />[root@sandbox ~]# hadoop fs -put dayofweek.txt /user/root/pig</p>
+<p><br />-- 3. Create two pig scripts that we will use later in this lab for invocation of the scripts from pig grunt</p>
+<p>[root@sandbox]# echo -e "set job.name 'pig_test' \n a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray); \n b = limit a 5; \n dump b;" &gt; /root/lab/test1.pig</p>
+<p>[root@sandbox]# cat test1.pig</p>
+<p>[root@sandbox]# echo -e "set job.name 'pig_test' \n a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray); \n b = limit a 5; \n store b into '/user/root/pig/full_text_limit3';" &gt; /root/lab/test2.pig</p>
+<p>[root@sandbox]# cat test2.pig</p>
+<p><br />----------------------------------------------------------------------------<br />----------------------------------------------------------------------------<br />-- Exercise 1 - Pig Shell/Utility Commands<br />----------------------------------------------------------------------------<br />----------------------------------------------------------------------------</p>
+<p>-- 1.1 Launch pig grunt shell (interactive mode)<br />-- NOTE: you can launch pig from any directory, ideally the directory where you store your pig scripts, functions and side files</p>
+<p>[root@sandbox lab]# pig<br />grunt&gt; quit;</p>
+<p>-- 1.2 Execute a pig script from command line<br />[root@sandbox lab]# pig test1.pig</p>
+<p><br />---------------------------------------------<br />-- Shell commands (running from Pig grunt)<br />---------------------------------------------</p>
+<p>[root@sandbox lab]# pig</p>
+<p>-- 1.3 Run shell command in pig grunt<br />grunt&gt; sh pwd<br />grunt&gt; sh ls -alF /root/lab/</p>
+<p><br />----------------------------------------------<br />-- FsShell commands (working with HDFS files)<br />----------------------------------------------</p>
+<p>-- 1.4 Run HDFS commands in pig grunt<br />-- Note: make sure you update the path properly <br />grunt&gt; fs -ls /user<br />grunt&gt; fs -ls /user/root/pig<br />grunt&gt; fs -put /root/lab/full_text.txt /user/root/pig/full_text_1.txt</p>
+<p>-------------------<br />-- Utility commands<br />-------------------</p>
+<p>-- 1.5 execute a pig script from pig grunt (parameters/relations in the script are NOT passed to the current grunt environment)<br />grunt&gt; exec test1.pig</p>
+<p>-- 1.6 run a pig script from pig grunt (parameters are passed to the current grunt environment)<br />grunt&gt; run test2.pig</p>
+<p>-- 1.7 list a directory in pig grunt<br />grunt&gt; fs -ls /user/root/pig</p>
+<p>-- 1.8 remove a file/directory in pig grunt<br />grunt&gt; rmf /user/root/pig/full_text_limit3</p>
+<p><br />-- 1.9 set pig job properties in pig grunt/script<br />grunt&gt; set job.name 'testing'<br />grunt&gt; set default_parallel 10<br />grunt&gt; set job.priority high</p>
+<p><br />-- 1.10 clear screen<br />grunt&gt; clear</p>
+<p>-- 1.11 quit pig grunt and return to linux<br />grunt&gt; quit</p>
+<p><br />----------------------------------------------------------------------------<br />----------------------------------------------------------------------------<br />-- 2. Pig Latin Basics<br />----------------------------------------------------------------------------<br />----------------------------------------------------------------------------</p>
+<p><br />-- 2.1 Data exploration using limit and dump<br />grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = limit a 5;<br />grunt&gt; dump b;</p>
+<p>-- 2.2 load and store data<br />grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; rmf /user/root/pig/full_text_1.txt</p>
+<p><span>grunt&gt; b = limit a 5;</span><br />grunt&gt; c = store b into '/user/root/pig/full_text_1.txt ';</p>
+<p>-- 2.3 Referencing fields (using position and field names)</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate $0, $1, location, tweet;<br />grunt&gt; c = limit b 5;<br />grunt&gt; dump c;</p>
+<p>grunt&gt; describe b;</p>
+<p><br />----------------------------------------------------------------------------<br />----------------------------------------------------------------------------<br />-- 4. Pig Functions<br />----------------------------------------------------------------------------<br />----------------------------------------------------------------------------</p>
+<p>-------------------------<br />-- DATE/Time functions</p>
+<p>-- CurrentTime()<br />-- GetYear()<br />-- GetMonth()<br />-- GetDay()<br />-- GetWeek()<br />-- ToDate()<br />-- ToString()<br />-- ToUnixTime()<br />-------------------------</p>
+<p>-- 4.1 Date/Time functions<br />grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, ts, ToDate(ts) as ts1;<br />grunt&gt; c = foreach b generate id, ts, ts1, ToString(ts1) as ts_iso, ToUnixTime(ts1), GetYear(ts1) as year, GetMonth(ts1) as month, GetWeek(ts1) as week;<br />grunt&gt; d = limit c 5;<br />grunt&gt; dump d;</p>
+<p></p>
+<p><br />--------------------------<br />-- STRING functions</p>
+<p>-- LOWER()<br />-- UPPER()<br />-- STARTSWITH()<br />-- ENDSWITCH()<br />-- STRSPLIT()<br />-- STRSPLITTOBAG()<br />-- REPLACE()<br />-- SUBSTRING()<br />-- TRIM()<br />-- INDEXOF()<br />-- LASTINDEXOF()<br />-- REGEX_EXTRACT_ALL()<br />-- REGEX_EXTRACT()<br />--------------------------</p>
+<p>-- 4.2 String Function - LOWER<br />grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, ts, location, LOWER(tweet) as tweet;<br />grunt&gt; c = limit b 5;<br />grunt&gt; dump c;</p>
+<p>-- 4.3 String Function - UPPER<br />grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, ts, location, UPPER(tweet) as tweet;<br />grunt&gt; c = limit b 5;<br />grunt&gt; dump c;</p>
+<p>-- 4.4 Use SUBSTRING() to extract year from ts string<br />grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, ts, SUBSTRING(ts, 0,4);<br />grunt&gt; c = limit b 5;<br />grunt&gt; dump c;</p>
+<p>-- 4.5 Use STARTSWITH() to get retweets <br />grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = filter a by STARTSWITH(tweet,'RT');<br />grunt&gt; c = group b all;<br />grunt&gt; d = foreach c generate COUNT(b);<br />grunt&gt; dump d;<br /><br />-- 4.6 Finding users who tweet long tweets</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, ts, location, SIZE(tweet) as tweet_len;<br />grunt&gt; c = order b by tweet_len desc;<br />grunt&gt; d = limit c 10;<br />grunt&gt; dump d;</p>
+<p></p>
+<p>--------------------------------------------------------------<br />-- CONDITIONAL function<br />--------------------------------------------------------------</p>
+<p>-- 4.10 Find users who like to tw-eating</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, ts, (GetHour(ToDate(ts))==7 ? 'breakfast' : <br /> (GetHour(ToDate(ts))==12 ? 'lunch' :<br /> (GetHour(ToDate(ts))==19 ? 'dinner' : null))) as tw_eating, lat, lon;<br />grunt&gt; c = filter b by tw_eating=='breakfast' or tw_eating=='lunch' or tw_eating=='dinner';<br />grunt&gt; d = limit c 50;<br />grunt&gt; dump d;</p>
+<p><br />----------------------------------------------------------------------------<br />----------------------------------------------------------------------------<br />-- 5. Pig Relational Operations<br />----------------------------------------------------------------------------<br />----------------------------------------------------------------------------</p>
+<p>-- 5.1 Find tweets that have hashtags&nbsp;using FILTER</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; filtr = FILTER a BY tweet MATCHES&nbsp; <span>'.*</span><span class="pl-cce">\\</span><span>#</span><span class="pl-cce">\\</span><span>p{Alpha}.*?'</span><br />grunt&gt; limt = limit filtr 500;<br />grunt&gt; dump limt;</p>
+<p><br />-- 5.2 Find all tweets by a user</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = filter a by id=='USER_ae406f1d'; <br />grunt&gt; dump b;</p>
+<p><br />-- 5.3 Find all tweets tweeted from NYC vicinity (using bounding box -74.2589, 40.4774, -73.7004, 40.9176)<br />-- http://www.darrinward.com/lat-long/?id=461435</p>
+<p><br />grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = filter a by lat &gt; 40.4774 and lat &lt; 40.9176 and lon &gt; -74.2589 and lon &lt; -73.7004 and <br /> SIZE(tweet)&lt;50 and <br /> GetHour(ToDate(ts))==12;<br />grunt&gt; c = foreach b generate lat, lon;<br />grunt&gt; d = distinct c;<br />grunt&gt; e = limit d 500;<br />grunt&gt; dump e;</p>
+<p><br />-- 5.4 Filtering data in pig<br />-- find retweets in NYC on 12th with length smaller than 50 characters<br />grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = filter a by lat &gt; 40.4774 and lat &lt; 40.9176 and lon &gt; -74.2589 and lon &lt; -73.7004 and <br /> SIZE(tweet)&lt;50 and <br /> GetHour(ToDate(ts))==12;<br />grunt&gt; c = foreach b generate id, ts, lat, lon, tweet;<br />grunt&gt; d = limit c 10;<br />grunt&gt; dump d;</p>
+<p>---------------------------<br />-- GROUP BY - Aggregation<br />---------------------------</p>
+<p><br />-- 5.5 Calculate # of tweets per user</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = group a by id;<br />grunt&gt; c = foreach b generate group as id, COUNT(a) as cnt;<br />grunt&gt; d = order c by cnt desc;<br />grunt&gt; e = limit d 5;<br />grunt&gt; dump e;</p>
+<p>-- 5.6 Count total number of records</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = group a ALL;<br />grunt&gt; c = foreach b generate COUNT_STAR(a);<br />grunt&gt; dump c;</p>
+<p><br />--------------------------------------<br />-- ORDER BY<br />--------------------------------------</p>
+<p>-- 5.10 Find top 10 tweeters in NYC<br />grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = filter a by lat &gt; 40.4774 and lat &lt; 40.9176 and<br /> lon &gt; -74.2589 and lon &lt; -73.7004;<br />grunt&gt; c = group b by id;<br />grunt&gt; d = foreach c generate group as id, COUNT(b) as cnt;<br />grunt&gt; e = order d by cnt desc;<br />grunt&gt; f = limit e 10;<br />grunt&gt; dump f;</p>
+<p><br />--------------------------------------<br />-- Nested Foreach<br />--------------------------------------</p>
+<p><br />-- 5.15 Get top word of each user</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, ts, TOTUPLE(lat, lon) as loc_tuple:tuple(lat:chararray, lon:chararray), flatten(TOKENIZE(tweet)) as token;<br />grunt&gt; c = group b by (id, token);<br />grunt&gt; d = foreach c generate flatten(group) as (id, token), COUNT(b) as cnt; <br />grunt&gt; e = group d by id;<br />grunt&gt; f = foreach e {<br /> sortd = order d by cnt desc;<br /> top = limit sortd 10;<br /> generate group as id, top as pop_word_bag;<br />};<br />grunt&gt; g = limit f 10;<br />grunt&gt; dump g;</p>
+<p><br />--------------------------------------<br />-- Advanced JOIN<br />--------------------------------------</p>
+<p><br />-- repare lookup table 'dayofweek'</p>
+<p>grunt&gt; fs -put /root/lab/dayofweek.txt /user/root/pig/</p>
+<p><br />-- 5.11 Find Weekend Tweets<br />-- INNER JOIN</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' using PigStorage('\t') AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; a1 = foreach a generate id, ts, SUBSTRING(ts,0,10) as date;</p>
+<p>grunt&gt; b = load '/user/root/pig/dayofweek.txt' using PigStorage('\t') as (date:chararray, dow:chararray);<br />grunt&gt; b1 = filter b by dow=='Saturday' or dow=='Sunday';</p>
+<p>grunt&gt; c = join a1 by date, b1 by date;<br />grunt&gt; d = foreach c generate a1::id .. a1::date, b1::dow as dow;<br />grunt&gt; e = limit d 5;<br />grunt&gt; dump e;</p>
+<p><br />-- 5.12 Find Weekend Tweets<br />-- Using Replicated JOIN</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' using PigStorage('\t') AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; a1 = foreach a generate id, ts, SUBSTRING(ts,0,10) as date;</p>
+<p>grunt&gt; b = load '/user/root/pig/dayofweek.txt' using PigStorage('\t') as (date:chararray, dow:chararray);<br />grunt&gt; b1 = filter b by dow=='Saturday' or dow=='Sunday';</p>
+<p>grunt&gt; c = join a1 by date, b1 by date using 'replicated';<br />grunt&gt; d = foreach c generate a1::id .. a1::date, b1::dow as dow;<br />grunt&gt; e = limit d 5;<br />grunt&gt; dump e;</p>
+<p>-------------------<br />-- CROSS<br />-------------------</p>
+<p>-- 5.17 Parameter distribution using CROSS<br />&mdash; parameter file<br />(nfriends, 2)<br />(ndays, 100)<br />(nvists, 13)</p>
+<p>&mdash; friend table<br />(Amy, George)<br />(George, Fred)<br />(Fred, Anne)<br />(George, Joe)<br />(George, Harry)</p>
+<p><br />[root@sandbox ~]# echo -e "nfriends,2\nndays,100\nnvisits,13" &gt; /root/lab/params.txt<br />[root@sandbox ~]# echo -e "Amy,George\nGeorge,Fred\nFred,Anne\nGeorge,Joe\nGeorge,Harry" &gt; /root/lab/friend.txt<br />[root@sandbox ~]# hadoop fs -put params.txt /user/root/pig/ <br />[root@sandbox ~]# hadoop fs -put friend.txt /user/root/pig/</p>
+<p>grunt&gt; params = load '/user/root/pig/params.txt' using PigStorage(',') as (p_name:chararray, value:int);<br />grunt&gt; friend = load '/user/root/pig/friend.txt' using PigStorage(',') as (name:chararray, friend:chararray);</p>
+<p>grunt&gt; friend_grp = group friend by name;<br />grunt&gt; friend_cnt = foreach friend_grp generate group as name, COUNT(friend.friend) as cnt;</p>
+<p>grunt&gt; friend_param = filter params by p_name=='nfriends';<br />grunt&gt; friend_param_p = foreach friend_param generate value;</p>
+<p>grunt&gt; friend_cross = CROSS friend_cnt, friend_param_p;<br />grunt&gt; friend_cross_1 = filter friend_cross by friend_cnt::cnt &gt;= friend_param_p::value;<br />grunt&gt; dump friend_cross_1;</p>
+<p>--------------<br />-- COGROUP ---<br />--------------</p>
+<p>-- 5.7 COGROUP example<br />[root@sandbox ~]# echo -e "u1,14,M,US\nu2,32,F,UK\nu3,22,M,US" &gt; /root/lab/user.txt<br />[root@sandbox ~]# hadoop fs -put /root/lab/user.txt /user/root/pig/user.txt</p>
+<p>-- u1, 14, M, US<br />-- u2, 32, F, UK<br />-- u3, 22, M, US</p>
+<p>[root@sandbox ~]# echo -e "u1,US\nu1,UK\nu1,CA\nu2,US" &gt; /root/lab/session.txt<br />[root@sandbox ~]# hadoop fs -put /root/lab/session.txt /user/root/pig/session.txt</p>
+<p>-- u1, US<br />-- u1, UK<br />-- u1, CA<br />-- u2, US</p>
+<p>grunt&gt; user = load '/user/root/pig/user.txt' using PigStorage(',') as (uid:chararray, age:int, gender:chararray, region:chararray);<br />grunt&gt; session = load '/user/root/pig/session.txt' using PigStorage(',') as (uid:chararray, region:chararray);<br />grunt&gt; C = cogroup user by uid, session by uid;<br />grunt&gt; D = foreach C {<br /> crossed = cross user, session;<br /> generate crossed;<br />}<br />grunt&gt; dump D;</p>
+<p>-- 5.8 Use COGROUP for SET Intersection <br />[root@sandbox ~]# echo -e "John,3\nHarry,4\nGeorge,2" &gt; /root/lab/s1.txt<br />[root@sandbox ~]# echo -e "John,2\nJohn,3\nGeorge,0\nSue,1" &gt; /root/lab/s2.txt<br />[root@sandbox ~]# hadoop fs -put s1.txt /user/root/pig/ <br />[root@sandbox ~]# hadoop fs -put s2.txt /user/root/pig/</p>
+<p>grunt&gt; s1 = load '/user/root/pig/s1.txt' using PigStorage(',') as (name:chararray, hits:int);<br />grunt&gt; s2 = load '/user/root/pig/s2.txt' using PigStorage(',') as (name:chararray, errors:int);<br />grunt&gt; grps = COGROUP s1 BY name, s2 BY name;<br />grunt&gt; grps2 = FILTER grps by NOT(IsEmpty(s1)) AND NOT(IsEmpty(s2));<br />grunt&gt; dump grps2;</p>
+<p>-- 5.9 Use COGROUP for set difference</p>
+<p>grunt&gt; s1 = load '/user/root/pig/s1.txt' using PigStorage(',') as (name:chararray, hits:int);<br />grunt&gt; s2 = load '/user/root/pig/s2.txt' using PigStorage(',') as (name:chararray, errors:int);<br />grunt&gt; grps = COGROUP s1 BY name, s2 BY name;<br />grunt&gt; grps2 = FILTER grps by IsEmpty(s2);<br />grunt&gt; set_diff = FOREACH grps2 GENERATE group as grp, s1, s2 ;<br />grunt&gt; dump set_diff;</p>
+<p></p>
+<p><br />----------------------------------------------------------------------------<br />----------------------------------------------------------------------------<br />-- 3. Complex Data Types<br />----------------------------------------------------------------------------<br />----------------------------------------------------------------------------<br />--3.0 TUPLE example<br />[root@sandbox ~] echo -e "(3,8,9) (4,5,6)\n(1,4,7) (3,7,5)\n(2,5,8) (9,5,8)" &gt; data<br />grunt&gt; A = LOAD '/user/root/pig/data' using PigStorage(' ') AS (t1:tuple(t1a:int, t1b:int,t1c:int),t2:tuple(t2a:int,t2b:int,t2c:int));<br />grunt&gt; Dump A;</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' using PigStorage('\t') AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = Foreach a generate TOTUPLE(id,ts) as t1, TOTUPLE(lat,lon) as t2;<br />grunt&gt; c = limit b 5;<br />grunt&gt; dump c;</p>
+<p><br />-- 3.1 BAG example (star expression)<br />quit</p>
+<p>[root@sandbox ~]# echo -e "user1\ta\tb\tc\nuser2\ta\tb\nuser3\ta" &gt; data_test_bag<br />[root@sandbox ~]# cat data_test_bag<br />[root@sandbox ~]# hadoop fs -rm -r /user/root/pig/data_test_bag<br />[root@sandbox ~]# hadoop fs -put data_test_bag /user/root/pig/data_test_bag</p>
+<p></p>
+<p>grunt&gt; a = load '/user/root/pig/data_test_bag' using PigStorage('\t') as (id:chararray, f1:chararray, f2:chararray, f3:chararray);<br />grunt&gt; b = group a ALL;<br />grunt&gt; c = foreach b generate COUNT(a.$0);<br />grunt&gt; d = foreach b generate COUNT(a.$1);<br />grunt&gt; e = foreach b generate COUNT(a.$2);<br />grunt&gt; f = foreach b generate COUNT(a.$3);<br />grunt&gt; g = foreach b generate COUNT(a);<br />grunt&gt; h = foreach b generate COUNT(a.*); -- error<br />grunt&gt; dump c; -- 3<br />grunt&gt; dump d; -- 3<br />grunt&gt; dump e; -- 2<br />grunt&gt; dump f; -- 1<br />grunt&gt; dump g; -- 3</p>
+<p><br />-- 3.2 MAP</p>
+<p>example 1---<br />[root@sandbox ~]# echo -e "joe smith\t20\t3.5\namychen\t22\t3.2\nleo allen\t18\t2.1" &gt; student<br />grunt&gt; A = load '/user/root/pig/student' as (name:chararray, age:int, gpa:float); <br />grunt&gt; B = foreach A generate [name, gpa]; <br />grunt&gt; store B into &lsquo;results&rsquo;;</p>
+<p></p>
+<p>---------------------<br />-- Flatten<br />---------------------</p>
+<p>-- 5.13 Flatten Tuples<br />-- Calculate # of tweets per user per day</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, SUBSTRING(ts, 0, 10) as date, lat, lon, tweet;<br />grunt&gt; c = GROUP b BY (id, date);<br />grunt&gt; d = FOREACH c GENERATE FLATTEN(group) AS (id,date) , COUNT(b) as cnt;<br />grunt&gt; e = order d by cnt desc;<br />grunt&gt; f = limit e 5;<br />grunt&gt; dump f;</p>
+<p>-- visualize group<br />grunt&gt; illustrate d;</p>
+<p></p>
+<p>-- 5.14 Flatten Bags<br />-- Flatten Bags Example</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, SUBSTRING(ts, 0, 10) as date, lat, lon, tweet;<br />grunt&gt; c = GROUP b BY (id, date);<br />grunt&gt; d = FOREACH c GENERATE FLATTEN(b) AS (id, date, lat, lon, tweet);<br />grunt&gt; e = order d by id, date;<br />grunt&gt; f = limit e 50;<br />grunt&gt; dump f;</p>
+<p>--------------------------------------<br />-- Scalar Projection<br />--------------------------------------</p>
+<p>-- 5.18 Normalize the number of tweets of each user against global average #</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = group a by id;<br />grunt&gt; c = foreach b generate group as id, COUNT(a) as user_cnt;<br />grunt&gt; d = group c ALL;<br />grunt&gt; e = foreach d generate AVG(c.user_cnt) as global_avg;<br />grunt&gt; f = foreach c generate id, user_cnt/(float)e.global_avg as index;<br />grunt&gt; store f into '/user/root/pig/tweet_count_index';</p>
+<p>grunt&gt; a = load '/user/root/pig/tweet_count_index/*' as (id:chararray, index:float);<br />grunt&gt; b = limit a 10;<br />grunt&gt; dump b;</p>
+<p></p>
+<p>----------------------------------------------------------------------------<br />----------------------------------------------------------------------------<br />-- 6. Pig UDF (User Defined Function)<br />----------------------------------------------------------------------------<br />----------------------------------------------------------------------------</p>
+<p>-----------------<br />-- piggybank UDFs<br />-----------------</p>
+<p>[root@sandbox ~]# wget http://central.maven.org/maven2/org/apache/pig/piggybank/0.14.0/piggybank-0.14.0.jar</p>
+<p>-- 6.1 iso time to unix time conversion<br />grunt&gt; register &lsquo;/root/lab/piggybank-0.14.0.jar';<br />grunt&gt; define isotounix org.apache.pig.piggybank.evaluation.datetime.convert.ISOToUnix();</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, ts, isotounix(ts) as ts_unix;<br />grunt&gt; c = limit b 3;<br />grunt&gt; dump c;</p>
+<p>-----UDF for GeoSpatial</p>
+<p>Download jars<br />----<br />[root@sandbox ~]# wget https://github.com/Esri/geometry-api-java/releases/download/v1.2.1/esri-geometry-api-1.2.1.jar<br />[root@sandbox ~]# wget http://spatialhadoop.cs.umn.edu/pigeon/pigeon-0.1.jar<br />-------</p>
+<p>-- 6.6 find tweets from NYC</p>
+<p>grunt&gt; register /root/lab/pigeon-0.1.jar;<br />grunt&gt; register /root/lab/esri-geometry-api-1.2.1.jar;</p>
+<p>-- define functions<br />-- define functions<br />grunt&gt; DEFINE ST_MakeBox edu.umn.cs.pigeon.MakeBox;<br />grunt&gt; DEFINE ST_Contains edu.umn.cs.pigeon.Contains;<br />grunt&gt; DEFINE ST_MakePoint edu.umn.cs.pigeon.MakePoint;</p>
+<p><br />grunt&gt; data = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:double, lon:double, tweet:chararray);<br />grunt&gt; data1 = FOREACH data GENERATE id, ts, lat, lon, ST_MakePoint(lat, lon) AS geom_point, tweet;<br />grunt&gt; data2 = FILTER data1 BY ST_Contains(ST_MakeBox(40.4774, -74.2589, 40.9176, -73.7004), geom_point);<br />grunt&gt; data3 = limit data2 200;<br />grunt&gt; data4 = foreach data3 generate lat, lon;<br />grunt&gt; dump data4;</p>
+<p><br />--------------------<br />MORE THINGS PIG CAN DO<br />--------------------</p>
+<p>-- 4.8 STRSPLIT(), STRSPLITTOBAG()</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, STRSPLITTOBAG(tweet, '[ ",()*]', 0);<br />grunt&gt; c = limit b 3;<br />grunt&gt; dump c;</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, FLATTEN(STRSPLITTOBAG(tweet, ' ', 0));<br />grunt&gt; c = limit b 15;<br />grunt&gt; dump c;</p>
+<p><br />-- 4.9 Tweet word count using Pig TOKENIZE() and FLATTEN()<br />grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate FLATTEN(TOKENIZE(tweet)) as token;<br />grunt&gt; c = group b by token;<br />grunt&gt; d = foreach c generate group as token, COUNT(b) as cnt;<br />grunt&gt; e = order d by cnt desc;<br />grunt&gt; f = limit e 20;<br />grunt&gt; dump f;</p>
+<p><br />---More Map examples---</p>
+<p>[root@sandbox ~]# echo -e "user1\t{([address#2436 mains st]),([name#shaohua]),([phone#222-222-2222]),([city#toronto])} \nuser2\t{([address#456 king st]),([name#jenny]),([occupation#doctor]),([city#toronto])}\nuser3\t{([city#mississauga]),([name#larry]),([interest#sports])}" &gt; data_test_map</p>
+<p>[root@sandbox ~]# cat data_test_map<br />[root@sandbox ~]# hadoop fs -put data_test_map '/user/root/pig/data_test_map'<br />[root@sandbox ~]# pig</p>
+<p>grunt&gt; a = load '/user/root/pig/data_test_map' using PigStorage('\t') as (id:chararray, info:bag{t:(m:map[])});<br />grunt&gt; b = foreach a generate id, info, flatten(info) as info_flat;<br />grunt&gt; c = filter b by info_flat#'city'=='toronto';<br />grunt&gt; d = limit c 5;<br />grunt&gt; dump d;</p>
+<p></p>
+<p>-- example 2<br />-- data prep (transformations on the original full_text file and store into another file in HDFS)<br />grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, ts, TOTUPLE(lat, lon) as loc_tuple:tuple(lat:chararray, lon:chararray), flatten(TOKENIZE(tweet)) as token;<br />grunt&gt; c = group b by (id, token);<br />grunt&gt; d = foreach c generate flatten(group) as (id, token), COUNT(b) as cnt; <br />grunt&gt; e = group d by id;<br />grunt&gt; f = foreach e generate group as id, flatten(TOP(10, 2, d)) as (id1, word,cnt);<br />grunt&gt; g = foreach f generate id, TOMAP(word, cnt) as freq_word:map[];<br />grunt&gt; h = group g by id;<br />grunt&gt; store h into '/user/root/pig/full_text_t_map';</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text_t_map'; <br />grunt&gt; b = limit a 3;<br />grunt&gt; dump b;</p>
+<p>-- load map type and extract tweeters who have tweeted word I more than 5 times<br />grunt&gt; a = load '/user/root/pig/full_text_t_map' as (id:chararray, freq_word:bag{t:(id1:chararray, freq_word_m:map[])});<br />grunt&gt; b = foreach a generate id, flatten(freq_word) as (id1, freq_word_m);<br />grunt&gt; c = filter b by (int)freq_word_m#'I' &gt; 5;<br />grunt&gt; d = limit c 10;<br />grunt&gt; dump d;</p>
+<p><br />---------------------------</p>
+<p>DEFINE TOP_ASC TOP('ASC');</p>
+<p>grunt&gt; a = load '/user/root/pig/full_text.txt' AS (id:chararray, ts:chararray, location:chararray, lat:float, lon:float, tweet:chararray);<br />grunt&gt; b = foreach a generate id, ts, location, LOWER(tweet) as tweet;<br />grunt&gt; c = foreach b generate id, ts, location, tweet, FLATTEN(TOKENIZE(tweet)) as tokens;<br />grunt&gt; d = foreach c generate id, ts, location, tweet, REGEX_EXTRACT(tokens,'.*@user_(\\w{8}).*',1) as token;<br />grunt&gt; e = filter d by token IS NOT NULL;<br />grunt&gt; f = foreach e generate id, ts, location, tweet, INDEXOF(tweet, token) as pos;<br />grunt&gt; g = foreach f generate id, ts, pos, SUBSTRING(tweet,pos,pos+8) as mention;<br />grunt&gt; h = group g by (id, ts);<br />grunt&gt; i = foreach h {<br /> top3 = TOP_ASC(3,1,g);<br /> generate flatten(group) as (id, ts), top3 as mentions_top3;<br /> };<br />grunt&gt; j = limit i 3000;<br />grunt&gt; dump j;</p>
+<p></p>
+<p></p>
+</body>
+</html>
