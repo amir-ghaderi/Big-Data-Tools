@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body style="font-family: verdana, sans-serif;font-size: 12px;">
+<p><strong>Complex Data Structures</strong></p>
+<p><strong>Array</strong></p>
+<p>create table test_array(product bigint , product_colors array&lt;string&gt;)<br /> row format delimited&nbsp;&nbsp;&nbsp;<br /> fields terminated by ','<br /> &nbsp;collection items terminated by '$';</p>
+<p>Load data &nbsp;inpath '/user/root/array_test.txt' overwrite into table test_array;</p>
+<p>Select product_colors from test_array;</p>
+<p>Select product_colors[0], product_colors[1] from test_array;</p>
+<p><strong>Array Functions</strong></p>
+<p>Select size(product_colors) from test_array;</p>
+<p>Select array_contains(product_colors, 'red') from test_array;</p>
+<p>Select sort_array(product_colors) from test_array;</p>
+<p><strong>Array - Explode</strong></p>
+<p>SELECT explode(product_colors) AS colors FROM test_array;</p>
+<p><strong>Array - Collect</strong></p>
+<p>Create table test_array_temp as&nbsp;SELECT explode(product_colors) AS colors FROM test_array;</p>
+<p>Select collect_list(colors) as color from test_array_temp;</p>
+<p>Select collect_set(colors) as color from test_array_temp;</p>
+<p><strong>Array - Explode &amp; Lateral View</strong></p>
+<p>SELECT product, colors&nbsp;FROM test_array LATERAL VIEW explode(product_colors) test_array AS colors;</p>
+<p>-----------------------------------------------</p>
+<p><strong>MAP</strong></p>
+<p>create table test_map(product bigint , product_parts_color map&lt;string,string&gt;)<br /> row format delimited&nbsp;&nbsp;&nbsp;<br /> fields terminated by ','<br />collection items terminated by '$'</p>
+<p>map keys terminated by '#';</p>
+<p></p>
+<p>Load data inpath '/user/root/map_test.txt' overwrite into table test_map;</p>
+<p>Select product_parts_color from test_map;</p>
+<p>Select product_parts_color['screen'], product_parts_color['keyboard'] from test_map;</p>
+<p></p>
+<p><strong>MAP - Functions</strong></p>
+<p>Select size(product_parts_color) from test_map;</p>
+<p>Select map_keys(product_parts_color) from test_map;</p>
+<p>Select map_values(product_parts_color) from test_map;</p>
+<p><strong>MAP - Explode</strong></p>
+<p>SELECT explode(product_parts_color) AS (product_name, color) FROM test_map;</p>
+<p><strong>MAP - Explode &amp; Lateral View</strong></p>
+<p>SELECT product, name, color FROM test_map Lateral view explode(product_parts_color) test_map as name, color ;</p>
+<p></p>
+<p><strong>STRUCT</strong></p>
+<p>create table test_struct(product bigint , product_info struct&lt;size:int,color:string&gt;)<br /> row format delimited&nbsp;&nbsp;&nbsp;<br /> fields terminated by ','<br /> &nbsp;collection items terminated by '$';</p>
+<p>Load data &nbsp;inpath '/user/root/struct_test.txt' overwrite into table test_struct;</p>
+<p>Select product_info from test_struct;</p>
+<p>Select product_info.size, product_info.color from test_struct;</p>
+<p>----------------------------------------------------------------------------------------------------------------------</p>
+<p><strong>PARTITIONING</strong></p>
+<p>CREATE TABLE employees(</p>
+<p>&nbsp; firstname VARCHAR(64),</p>
+<p>&nbsp; lastname&nbsp; VARCHAR(64)</p>
+<p>&nbsp; )&nbsp;PARTITIONED BY (country VARCHAR(64), state VARCHAR(64));</p>
+<p></p>
+<p><strong>STATIC PARTITIONS</strong></p>
+<p>LOAD DATA LOCAL INPATH 'employee_CA.txt'</p>
+<p>&nbsp;INTO TABLE&nbsp;employees</p>
+<p>PARTITION (country = 'US', state = 'CA');</p>
+<p><em>Check HDFS to see the partition loaded</em></p>
+<p>dfs -ls /apps/hive/warehouse/employees;</p>
+<p><strong>DYNAMIC PARTITIONS</strong></p>
+<p>&nbsp;set hive.exec.dynamic.partition=true;</p>
+<p>set hive.exec.dynamic.partition.mode=nonstrict;</p>
+<p>CREATE TABLE temp_employees(firstname VARCHAR(64),&nbsp;lastname&nbsp; VARCHAR(64),&nbsp;<span>country VARCHAR(64), </span><span>state VARCHAR(64)</span>) row format delimited fields terminated&nbsp;by ',';</p>
+<p>LOAD DATA LOCAL INPATH 'employees_big.txt' INTO TABLE temp_employees;</p>
+<p>INSERT INTO TABLE employees&nbsp;PARTITION (country, state)</p>
+<p style="padding-left: 30px;">SELECT&nbsp; firstname ,&nbsp;lastname,&nbsp;country, state &nbsp; FROM temp_employees;</p>
+<p style="padding-left: 30px;"></p>
+<p><strong>WHERE CONDITION</strong></p>
+<p>SELECT firstname&nbsp; FROM employees</p>
+<p>&nbsp; WHERE country='US' AND state='CA'</p>
+<p>limit 5;</p>
+<p>------------------------------------------------------------------------------------------------------------------</p>
+<p><strong>Bucketing</strong></p>
+<p><strong></strong></p>
+<p>CREATE TABLE employees_bucket(</p>
+<p>&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; firstname VARCHAR(64),</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; lastname&nbsp; VARCHAR(64),</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; country &nbsp; &nbsp;&nbsp;VARCHAR(64),</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; state&nbsp;&nbsp;&nbsp;&nbsp; VARCHAR(64))</p>
+<p>&nbsp;CLUSTERED BY (state) SORTED BY (firstname) INTO 2&nbsp;BUCKETS;</p>
+<p><strong>INSERTION - SIMILAR TO DYNAMIC PARTITION</strong></p>
+<p>set hive.enforce.bucketing=true;</p>
+<p>INSERT INTO TABLE employees_bucket</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; SELECT&nbsp; firstname ,</p>
+<p>&nbsp; lastname&nbsp; ,</p>
+<p>&nbsp; country&nbsp;&nbsp; ,</p>
+<p>&nbsp; state&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p>&nbsp; FROM temp_employees;</p>
+<p><strong>Bucketing - Sample</strong></p>
+<p>&uml;Sample on specific bucket</p>
+<p>SELECT firstname, country, state FROM employees_bucket TABLESAMPLE(BUCKET 2 OUT OF 2 ON state);</p>
+<p>&uml;Sample of overall data</p>
+<p><span>set hive.tez.input.format=${hive.input.format};</span></p>
+<p>SELECT firstname, country, state, city FROM employees_bucket TABLESAMPLE(1 PERCENT);</p>
+<p>Select * from employees_bucket TABLESAMPLE(2 ROWS);</p>
+<p><strong>&nbsp; ------------------------------------------------------------------------</strong><br />-- <strong>Hive Advanced String Functions</strong><br />-----------------------------------------------</p>
+<p>Note: use tables created in previous Hive class</p>
+<p>-- sentences function<br />select sentences(tweet)<br />from twitter.full_text_ts<br />limit 10;</p>
+<p>-- ngrams function<br />-- *** find popular bigrams ***<br />select ngrams(sentences(tweet), 2, 10)<br />from twitter.full_text_ts<br />limit 50;</p>
+<p>-- ngrams function with explode()<br />-- *** find popular bigrams ***<br />select explode(ngrams(sentences(tweet), 2, 10))<br />from twitter.full_text_ts<br />limit 50;</p>
+<p>-- context_ngrams function<br />-- *** find popular word after 'I need' bi-grams ***<br />select explode(context_ngrams(sentences(tweet), array('I', 'need', null), 10))<br />from twitter.full_text_ts<br />limit 50;</p>
+<p>-- context_ngrams function<br />-- *** find popular tri-grams after 'I need' bi-grams ***<br />select explode(context_ngrams(sentences(tweet), array('I', 'need', null, null, null), 10))<br />from twitter.full_text_ts<br />limit 50;</p>
+<p>-- str_to_map<br />-- map a string to map complex type<br />select str_to_map(concat('lat:',lat,',','lon:',lon),',',':') <br />from twitter.full_text_ts<br />limit 10;</p>
+<p></p>
+<p><br />-----------------------------------------------<br />-- <strong>Aggregation Functions (UDAF)</strong><br />-----------------------------------------------</p>
+<p>Creating extra tables to be used in this section</p>
+<p>-- Creating table and load data with complex types<br />-- NOTE: because the twitter data is not in a proper format,<br />-- we need to prepare the data so that we can try <br />-- complex type exercise</p>
+<p><br />-- create a temporary table schema<br />drop table twitter.full_text_ts_complex_tmp;<br />create external table twitter.full_text_ts_complex_tmp (<br />id string,<br />ts timestamp,<br />lat float,<br />lon float,<br />tweet string,<br />location_array string, <br />location_map string,<br />tweet_struct string<br />)<br />row format delimited<br />fields terminated by '\t'<br />stored as textfile<br />location '/user/root/full_text_ts_complex';</p>
+<p>-- load transformed data into the temp table</p>
+<p>insert overwrite table twitter.full_text_ts_complex_tmp<br />select id, ts, lat, lon, tweet, <br />concat(lat,',',lon) as location_array,<br />concat('lat:', lat, ',', 'lon:', lon) as location_map, <br />concat(regexp_extract(lower(tweet), "(.*)@user_(\\S{8})([:| ])(.*)",2), ',', length(tweet)) as tweet_struct<br />from twitter.full_text_ts;</p>
+<p>select * from twitter.full_text_ts_complex_tmp limit 3;</p>
+<p><br />-- NOTE: we can drop the tmp hive table because all we need is <br />-- the HDFS file '/user/root/full_text_ts_complex'</p>
+<p>drop table twitter.full_text_ts_complex_tmp;</p>
+<p>-- To prove that the directory is still there...</p>
+<p>dfs -ls /user/root/full_text_ts_complex;</p>
+<p></p>
+<p>-- Reload the temp file using complex types instead of strings<br />-- NOTE: you specify the complex type when you create the table schema<br />drop table twitter.full_text_ts_complex;<br />create external table twitter.full_text_ts_complex (<br />id string,<br />ts timestamp,<br />lat float,<br />lon float,<br />tweet string,<br />location_array array&lt;float&gt;,<br />location_map map&lt;string, string&gt;,<br />tweet_struct struct&lt;mention:string, size:int&gt;<br />)<br />ROW FORMAT DELIMITED <br />FIELDS TERMINATED BY '\t'<br />COLLECTION ITEMS TERMINATED BY ','<br />MAP KEYS TERMINATED BY ':'<br />location '/user/root/full_text_ts_complex';</p>
+<p>select * from twitter.full_text_ts_complex limit 3;</p>
+<p>------------------------------------------------------------------------------</p>
+<p>-- <strong>MIN function</strong><br />-- *** Find twitter user who reside on the west most point of U.S. ***<br />-- You can visualize it using the map tool: http://www.darrinward.com/lat-long/?id=461435</p>
+<p>select distinct lat, lon<br />from twitter.full_text_ts_complex x<br />where cast(x.lon as float) IN (select min(cast(y.lon as float)) as lon from twitter.full_text_ts y);</p>
+<p><br />-- <strong>PERCENTILE_APPROX function (works with DOUBLE type)</strong><br />-- *** Find twitter users from north west part of U.S. ***<br />-- You can visualize it using the map tool: http://www.darrinward.com/lat-long/?id=461435</p>
+<p>select percentile_approx(cast(lat as double), array(0.9))<br />from twitter.full_text_ts_complex;</p>
+<p>select percentile_approx(cast(lon as double), array(0.1))<br />from twitter.full_text_ts_complex;&nbsp;</p>
+<p>select distinct lat, lon<br />from twitter.full_text_ts_complex<br />where cast(lat as double) &gt;= 41.79976907219686 AND<br />cast(lon as double) &lt;= -117.06394155417728<br />limit 10;</p>
+<p><br />-- <strong>HISTOGRAM_NUMERIC</strong><br />-- *** Bucket U.S. into 10x10 grids using histogram_numeric ***<br />-- get 10 variable-sized bins for latitude and longitude first<br />-- use cross-join to create the grid<br />-- visualize the result using the map tool: http://www.darrinward.com/lat-long/?id=461435</p>
+<p>-- get 10 variable-sized bins and their counts<br />select explode(histogram_numeric(lat, 10)) as hist_lat from twitter.full_text_ts_complex;</p>
+<p>select explode(histogram_numeric(lon, 10)) as hist_lon from twitter.full_text_ts_complex;</p>
+<p></p>
+<p>-----------------------------------------------<br />-- <strong>Table-generating Functions (UDTF)</strong><br />-----------------------------------------------</p>
+<p>-- explode() function and lateral_view<br />-- explode() function is often used with lateral_view<br />-- we extracted twitter mentions from tweets in lab 4. You've probably noticed <br />-- that it's not optimal soultion because the query we wrote didn't handle multiple<br />-- mentions. It only extract the very first mention. A better approach is to tokenize<br />-- the tweet first and then explode the tokens into rows and extract mentions from each token</p>
+<p>drop table twitter.full_text_ts_complex_1;<br /><span>create table twitter.full_text_ts_complex_1 as</span><br /><span>select id, ts, location_map, tweet, regexp_extract(lower(tweet_element), '(.*)@user_(\\S{8})([:| ])(.*)',2) as mention</span><br /><span>from twitter.full_text_ts_complex</span><br /><span>lateral view explode(split(tweet, '\\s')) tmp as tweet_element</span><br /><span>where trim(regexp_extract(lower(tweet_element), '(.*)@user_(\\S{8})([:| ])(.*)',2)) != "" ;</span></p>
+<p>select * from twitter.full_text_ts_complex_1 limit 10;</p>
+<p></p>
+<p>-- collect_set function (UDAF)<br />-- collect_set() is a UDAF aggregation function.. we run the query at this step <br />-- from the previous step, we get all the mentions in the tweets but if a user<br />-- has multiple mentions in the same tweet, they are in different rows. <br />-- To transpose all the mentions belonging to the same tweet/user, we can use<br />-- the collect_set and group by to transpose the them into an array of mentions</p>
+<p><br />drop table twitter.full_text_ts_complex_2;<br />create table twitter.full_text_ts_complex_2 as<br />select id, ts, location_map, tweet, collect_list(mention) as mentions<br />from twitter.full_text_ts_complex_1<br />group by id, ts, location_map, tweet;</p>
+<p>describe twitter.full_text_ts_complex_2;</p>
+<p>select * from twitter.full_text_ts_complex_2 <br />where size(mentions) &gt; 5<br />limit 10;</p>
+<p><br />-----------------------------------------------<br />-- Nested Queries<br />-----------------------------------------------</p>
+<p>-- Nested queries<br />-- *** tweets that have a lot of mentions ***</p>
+<p>select t.*<br />from (select id, ts, location_map, mentions, size(mentions) as num_mentions <br />from twitter.full_text_ts_complex_2) t<br />order by t.num_mentions desc<br />limit 10;</p>
+<p></p>
+<p>----------------------------------------</p>
+<p>Custom Map-Reduce - WordCount</p>
+<p>-----------------------------------------</p>
+<p>add file /root/lab/wc_mapper-2.py;</p>
+<p>add file /root/lab/wc_reducer-2.py;</p>
+<p>create table raw_lines as select tweet as line from full_text;</p>
+<p>create table word_count (word string, count bigint);</p>
+<p>from (</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; from raw_lines</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>map</b> raw_lines.line</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; --call the mapper here</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; using '<b>wc_mapper-2.py</b>'</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; as word, count</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; cluster by word) map_output</p>
+<p>insert overwrite table word_count</p>
+<p><b>reduce</b> map_output.word, map_output.count</p>
+<p>--call the reducer here</p>
+<p>using '<b>wc_reducer-2.py</b>'</p>
+<p>as word,count;</p>
+</body>
+</html>
