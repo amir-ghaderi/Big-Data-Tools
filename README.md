@@ -41,7 +41,7 @@
 <br>&nbsp;&nbsp;&nbsp;&nbsp; * [Assignment 2: Hive](https://github.com/amir-ghaderi/Big-Data-Tools/blob/master/Assignments/Assignment2.docx)
 <br>&nbsp;&nbsp;&nbsp;&nbsp; * [Assignment 3: Advanced Hive](https://github.com/amir-ghaderi/Big-Data-Tools/blob/master/Assignments/Assignment3.docx)
 <br>&nbsp;&nbsp;&nbsp;&nbsp; * [Assignment 4: Pig](https://github.com/amir-ghaderi/Big-Data-Tools/blob/master/Assignments/Assignment4.docx)
-<br>&nbsp;&nbsp;&nbsp;&nbsp; * [Assignment 5: MapReduce](https://github.com/amir-ghaderi/Big-Data-Tools/blob/master/Assignments/Assignment%206.zip)
-<br>&nbsp;&nbsp;&nbsp;&nbsp; * [Assignment 6: Hive](https://github.com/amir-ghaderi/Big-Data-Tools/blob/master/Assignments/Assignment%207.zip)
-<br>&nbsp;&nbsp;&nbsp;&nbsp; * [Assignment 7: Spark](https://github.com/amir-ghaderi/Big-Data-Tools/blob/master/Assignments/Assignment%208.zip)
+<br>&nbsp;&nbsp;&nbsp;&nbsp; * [Assignment 5: MapReduce](https://github.com/amir-ghaderi/Big-Data-Tools/blob/master/Assignments/Assignment%205%20.zip)
+<br>&nbsp;&nbsp;&nbsp;&nbsp; * [Assignment 6: Hive](https://github.com/amir-ghaderi/Big-Data-Tools/blob/master/Assignments/Assignment%206.zip)
+<br>&nbsp;&nbsp;&nbsp;&nbsp; * [Assignment 7: Spark](https://github.com/amir-ghaderi/Big-Data-Tools/blob/master/Assignments/Assignment%207.zip)
 
